@@ -1,76 +1,133 @@
-create table tipo_juridico (
-	codigo int primary key,
+/*
+Este código se encarga de crear las respectivas tablas de la base de datos en 3FN (12 tablas).
+Se crea cada tabla y seguidamente se importan los datos desde documentos de Excel.
+La Dirección donde deben estar esos docs de Excel es en: C:\Users\Public\TipoJuridico.csv
+*/
+
+
+
+create table tipo_juridico(
+	codigo char(2) primary key,
+	nombre varchar(45) not null
+);
+COPY PUBLIC.tipo_juridico(codigo, nombre)
+from 
+'C:\Users\Public\TipoJuridico.csv' delimiter ';' csv header;
+--------------------------------------------------
+create table clase(
+	codigo char(1) primary key,
+	nombre varchar(10) not null
+);
+COPY PUBLIC.clase(codigo, nombre)
+from 
+'C:\Users\Public\Clase.csv' delimiter ';' csv header;
+--------------------------------------------------
+create table tipo_domicilio(
+	codigo char(1) primary key,
 	nombre varchar(20) not null
 );
-
-create table clase (
-	codigo int primary key,
-	nombre varchar(20) not null
+COPY PUBLIC.tipo_domicilio(codigo, nombre)
+from 
+'C:\Users\Public\Domicilio.csv' delimiter ';' csv header; 
+--------------------------------------------------
+create table estado_empresa(
+	codigo char(2) primary key,
+	nombre varchar(35) not null
 );
-
-create table tipo_domicilio (
-	codigo int primary key,
-	nombre varchar(20) not null
-);
-
-create table estado_empresa (
-	codigo int primary key,
-	nombre varchar(20) not null
-);
-
-create table ciiu (
-	codigo int primary key,
-	descripcion varchar(100) not NULL
-);
-
-create table ciudad (
-	codigo int primary key,
+COPY PUBLIC.estado_empresa(codigo, nombre)
+from 
+'C:\Users\Public\Estado.csv' delimiter ';' csv header; 
+--------------------------------------------------
+create table ciudad(
+	codigo varchar(5) primary key,
 	nombre varchar(30)
 );
+COPY PUBLIC.ciudad(codigo, nombre)
+from 
+'C:\Users\Public\Ciudad.csv' delimiter ';' csv header; 
+--------------------------------------------------
+create table CIIU(
+	codigo varchar(4) primary key,
+	descripcion varchar(210) not NULL
+);
 
-create table tamano_empresa (
-	codigo int primary key,
+COPY PUBLIC.CIIU(codigo, descripcion)
+from 
+'C:\Users\Public\CIIU.csv' delimiter ';' csv header;
+--------------------------------------------------
+create table tamanio_empresa(
+	codigo char(1) primary key,
 	nombre varchar(15)
 );
-
-create table empresa (
-	nit int primary key,
-	tipo_identificacion varchar(3) not null,
-	razon_social varchar(30) not null,
+COPY PUBLIC.tamanio_empresa(codigo, nombre)
+from 
+'C:\Users\Public\TamanioEmpresa.csv' delimiter ';' csv header;
+--------------------------------------------------
+create table sector_economico(
+	codigo char(2) primary key,
+	nombre character varying not null
+);
+COPY PUBLIC.sector_economico(codigo, nombre)
+from 
+'C:\Users\Public\SectorEconomico.csv' delimiter ';' csv header;
+--------------------------------------------------
+create table empresa(
+	nit varchar(30) primary key,
+	tipo_identificacion varchar(4) not null,
+	razon_social varchar(160) not null,
 	num_empleados int not null,
 	valor_activos decimal(15,2) not null,
-	codigo_tamano_empresa int,
-	codigo_tipo_juridico int,
-	codigo_clase int not null,
-	codigo_tipo_domicilio int,
-	codigo_estado_empresa int,
-	codigo_ciudad int,
-	foreign key (codigo_tamano_empresa) REFERENCES tamano_empresa(codigo),
-	foreign key (codigo_tipo_juridico) REFERENCES tipo_juridico(codigo),
-	foreign key (codigo_clase) REFERENCES clase(codigo),
-	foreign key (codigo_tipo_domicilio) REFERENCES tipo_domicilio(codigo),
-	foreign key (codigo_estado_empresa) REFERENCES estado_empresa(codigo),
-	foreign key (codigo_ciudad) REFERENCES ciudad(codigo)
+	cod_tamanio_empresa char(1),
+	cod_tipo_juridico char(2),
+	cod_clase char(1) not null,
+	cod_tipo_domicilio char(1),
+	cod_estado_empresa char(2),
+	cod_ciudad varchar(5),
+	cod_sector_economico char(2),
+	foreign key (cod_tamanio_empresa) REFERENCES tamanio_empresa(codigo),
+	foreign key (cod_tipo_juridico) REFERENCES tipo_juridico(codigo),
+	foreign key (cod_clase) REFERENCES clase(codigo),
+	foreign key (cod_tipo_domicilio) REFERENCES tipo_domicilio(codigo),
+	foreign key (cod_estado_empresa) REFERENCES estado_empresa(codigo),
+	foreign key (cod_ciudad) REFERENCES ciudad(codigo),
+	foreign key (cod_sector_economico) REFERENCES sector_economico(codigo)
 );
-
-create table contacto (
-	nit_empresa int,
-	telefono int,
-	correo varchar(30),
+COPY PUBLIC.empresa(nit,tipo_identificacion,razon_social,num_empleados,
+					valor_activos,cod_tamanio_empresa,cod_tipo_juridico,
+					cod_clase,cod_tipo_domicilio,cod_estado_empresa,cod_ciudad,
+				   cod_sector_economico)
+from 
+'C:\Users\Public\Empresa.csv' delimiter ';' csv header;
+--------------------------------------------------
+create table contacto(
+	nit_empresa varchar(30),
+	telefono varchar(12),
+	correo character varying,
 	foreign key (nit_empresa) REFERENCES empresa(nit)
 );
-
-create table ciiu_empresa (
-	codigo_ciiu int primary key,
-	nit_empresa int not null,
-	foreign key (codigo_ciiu) REFERENCES ciiu(codigo),
-	foreign key (nit_empresa) REFERENCES empresa(nit)
-);
-
-create table matricula (
-	codigo int primary key,
+COPY PUBLIC.contacto(nit_empresa,telefono,correo)
+from 
+'C:\Users\Public\Contacto.csv' delimiter ';' csv header;
+--------------------------------------------------
+create table matricula(
+	nit_empresa varchar(30),
+	codigo_matricula varchar(10),
 	fecha_matricula date not null,
-	fecha_revovacion date not null,
-	nit_empresa int not null,
+	fecha_revovacion date,
 	foreign key (nit_empresa) REFERENCES empresa(nit)
 );
+COPY PUBLIC.matricula(nit_empresa,codigo_matricula,fecha_matricula,fecha_revovacion)
+from 
+'C:\Users\Public\Matricula.csv' delimiter ';' csv header;
+--------------------------------------------------
+create table CIIU_empresa(
+	nit_empresa varchar(30),
+	num_act_economica int,
+	cod_CIIU varchar(4),
+	foreign key (nit_empresa) REFERENCES empresa(nit),
+	foreign key (cod_CIIU) REFERENCES CIIU(codigo),
+	primary key(nit_empresa,cod_CIIU)
+);
+COPY PUBLIC.CIIU_empresa(nit_empresa,num_act_economica,cod_CIIU)
+from 
+'C:\Users\Public\CIIU_Empresa.csv' delimiter ';' csv header;
